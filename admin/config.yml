@@ -1,0 +1,22 @@
+backend:
+  name: github
+  repo: SEU_USUARIO/SEU_REPOSITORIO # Exemplo: joaovfsanchez/catalogo-joias
+  branch: main # ou master
+  site_domain: catalogo-joias.netlify.app # Necessário para o login OAuth do GitHub
+
+media_folder: "img"
+public_folder: "img"
+
+collections:
+  - name: "produtos"
+    label: "Produtos"
+    folder: "data/produtos"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Nome da Joia", name: "title", widget: "string" }
+      - { label: "Preço (R$)", name: "preco", widget: "number", value_type: "float" }
+      - { label: "Categoria", name: "categoria", widget: "select", options: ["Colares", "Brincos", "Pulseiras", "Anéis", "Kits"] }
+      - { label: "Foto do Produto", name: "imagem", widget: "image" }
+      - { label: "Descrição / Detalhes", name: "descricao", widget: "text", required: false }
+      - { label: "Destaque na Home", name: "destaque", widget: "boolean", default: true }
