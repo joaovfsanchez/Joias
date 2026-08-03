@@ -1,13 +1,149 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel de Controle - Catálogo de Joias</title>
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo de Joias</title>
+  <style>
+    :root {
+      --bg-dark: #0a192f;
+      --card-bg: #0d213a;
+      --gold: #d4af37;
+      --white: #ffffff;
+      --text-muted: #a8b2d1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-dark); color: var(--white); }
+    
+    header { background-color: #050c1a; padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212, 175, 55, 0.2); }
+    header h1 { color: var(--gold); font-size: 24px; letter-spacing: 2px; }
+    nav a { color: var(--white); text-decoration: none; margin-left: 20px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    nav a:hover { color: var(--gold); }
+
+    .hero { text-align: center; padding: 40px 20px; background: linear-gradient(180deg, #050c1a 0%, var(--bg-dark) 100%); border-bottom: 1px solid rgba(212, 175, 55, 0.1); }
+    .hero h2 { color: var(--gold); font-size: 28px; letter-spacing: 3px; font-weight: 300; margin-bottom: 10px; }
+
+    .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; }
+    .card { background-color: var(--card-bg); border: 1px solid var(--gold); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; text-align: center; padding: 15px; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-5px); }
+    .card img { width: 100%; height: 220px; object-fit: cover; border-radius: 4px; background-color: #050c1a; }
+    .card h3 { font-size: 16px; margin: 15px 0 5px 0; color: var(--white); letter-spacing: 1px; }
+    .card .price { color: var(--gold); font-size: 18px; font-weight: bold; margin-bottom: 12px; }
+    .card .btn-whatsapp { background-color: transparent; color: var(--white); border: 1px solid var(--white); padding: 8px 16px; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s; }
+    .card .btn-whatsapp:hover { background-color: var(--gold); color: var(--bg-dark); border-color: var(--gold); }
+
+    /* Caixa de Frete */
+    .frete-section { background-color: var(--card-bg); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 8px; padding: 25px; margin-top: 50px; max-width: 500px; margin-left: auto; margin-right: auto; text-align: center; }
+    .frete-section h3 { color: var(--gold); margin-bottom: 15px; font-weight: 400; letter-spacing: 1px; }
+    .frete-form { display: flex; gap: 10px; justify-content: center; }
+    .frete-form input { padding: 10px; border-radius: 4px; border: 1px solid var(--gold); background-color: #050c1a; color: var(--white); outline: none; width: 60%; }
+    .frete-form button { background-color: var(--gold); color: var(--bg-dark); border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    #resultado-frete { margin-top: 20px; text-align: left; }
+    .frete-item { background: #050c1a; border: 1px solid rgba(212, 175, 55, 0.2); padding: 10px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .frete-item small { color: var(--text-muted); }
+
+    footer { text-align: center; padding: 30px; background-color: #050c1a; margin-top: 60px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(212, 175, 55, 0.2); }
+  </style>
 </head>
 <body>
-  <!-- Script do Decap CMS -->
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+  <header>
+    <h1>MI CHARM</h1>
+    <nav>
+      <a href="#">Novidades</a>
+      <a href="#">Joias</a>
+      <a href="#">Contato</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h2>REVELE SEU CHARME</h2>
+  </section>
+
+  <main class="container">
+    <!-- Grid de Produtos -->
+    <div class="grid" id="produtos-container">
+      <!-- Produtos inseridos dinamicamente via JS -->
+    </div>
+
+    <!-- Simulador de Frete -->
+    <section class="frete-section">
+      <h3>SIMULADOR DE FRETE</h3>
+      <div class="frete-form">
+        <input type="text" id="cep-input" placeholder="Digite seu CEP" maxlength="9">
+        <button onclick="calcularFrete()">CALCULAR</button>
+      </div>
+      <div id="resultado-frete"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>CONTATO | ENVIO & DEVOLUÇÃO | POLÍTICA DE PRIVACIDADE</p>
+  </footer>
+
+  <script>
+    // 1. Carregar Produtos
+    async function carregarProdutos() {
+      try {
+        const response = await fetch('data/produtos.json');
+        const produtos = await response.json();
+        const container = document.getElementById('produtos-container');
+
+        container.innerHTML = produtos.map(item => `
+          <div class="card">
+            <img src="${item.imagem}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x300/0d213a/d4af37?text=Joia'">
+            <h3>${item.title.toUpperCase()}</h3>
+            <div class="price">R$ ${item.preco.toFixed(2).replace('.', ',')}</div>
+            <a href="https://wa.me/5500000000000?text=Olá,%20gostaria%20de%20saber%20mais%20sobre:%20${encodeURIComponent(item.title)}" target="_blank" class="btn-whatsapp">VER MAIS / COMPRAR</a>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Erro ao carregar produtos:', err);
+      }
+    }
+
+    // 2. Calcular Frete via Cloudflare Worker
+    async function calcularFrete() {
+      const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
+      const container = document.getElementById('resultado-frete');
+
+      if (cep.length !== 8) {
+        alert('Digite um CEP válido com 8 dígitos.');
+        return;
+      }
+
+      container.innerHTML = '<p style="color: var(--gold); text-align: center;">Calculando frete...</p>';
+
+      try {
+        const res = await fetch(`https://calculador-frete-joias.joaovfsanchez.workers.dev/?cep=${cep}`);
+        const dados = await res.json();
+
+        const validos = dados.filter(item => !item.error);
+
+        if (validos.length === 0) {
+          container.innerHTML = '<p style="color: #ff6b6b; text-align: center;">Nenhum frete disponível para este CEP.</p>';
+          return;
+        }
+
+        container.innerHTML = validos.map(item => `
+          <div class="frete-item">
+            <div>
+              <strong style="color: var(--gold);">${item.name}</strong><br>
+              <small>Entrega em até ${item.delivery_time} dias úteis</small>
+            </div>
+            <span style="font-weight: bold; color: #4caf50;">R$ ${parseFloat(item.price).toFixed(2).replace('.', ',')}</span>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        container.innerHTML = '<p style="color: #ff6b6b; text-align: center;">Erro ao consultar frete.</p>';
+      }
+    }
+
+    // Inicialização
+    carregarProdutos();
+  </script>
 </body>
 </html>
