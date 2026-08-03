@@ -1,0 +1,20 @@
+[
+  {
+    "id": "joia-1",
+    "title": "Colar Delicado Ouro 18k",
+    "preco": 29.90,
+    "categoria": "Colares",
+    "imagem": "img/colar-teste.jpg",
+    "descricao": "Colar delicado com acabamento fino e banhado a ouro.",
+    "destaque": true
+  },
+  {
+    "id": "joia-2",
+    "title": "Brincos Estrelados",
+    "preco": 19.90,
+    "categoria": "Brincos",
+    "imagem": "img/brincos-teste.jpg",
+    "descricao": "Brincos em formato de estrela com brilhantes.",
+    "destaque": true
+  }
+]
