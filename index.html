@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Charm - Joias</title>
+  <title>Mi Charm - Joias & Cosméticos</title>
   <style>
     :root {
       --bg-dark: #0a192f;
@@ -73,9 +73,8 @@
 
     .hero {
       text-align: center;
-      padding: 30px 20px;
+      padding: 25px 20px 15px 20px;
       background: linear-gradient(180deg, #050c1a 0%, var(--bg-dark) 100%);
-      border-bottom: 1px solid rgba(212, 175, 55, 0.1);
     }
 
     .hero h2 {
@@ -93,9 +92,41 @@
       font-style: italic;
     }
 
+    /* BARRA DE CATEGORIAS */
+    .categories-bar {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 15px 20px;
+      background-color: #050c1a;
+      border-top: 1px solid rgba(212, 175, 55, 0.1);
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+      justify-content: flex-start;
+      scrollbar-width: thin;
+    }
+
+    .cat-btn {
+      background-color: transparent;
+      color: var(--text-muted);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+
+    .cat-btn.active, .cat-btn:hover {
+      background-color: var(--gold);
+      color: var(--bg-dark);
+      border-color: var(--gold);
+      font-weight: bold;
+    }
+
     .container {
       max-width: 1200px;
-      margin: 40px auto;
+      margin: 30px auto;
       padding: 0 20px;
     }
     
@@ -125,6 +156,19 @@
     .card.inativo { opacity: 0.5; border-color: #555; }
     .card:hover { transform: translateY(-5px); }
 
+    .card-badge {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: var(--gold);
+      color: var(--bg-dark);
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+      z-index: 2;
+    }
+
     .card img {
       width: 100%;
       height: 240px;
@@ -135,9 +179,16 @@
 
     .card h3 {
       font-size: 15px;
-      margin: 15px 0 5px 0;
+      margin: 12px 0 3px 0;
       color: var(--white);
       letter-spacing: 1px;
+    }
+
+    .card .category-tag {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
     }
 
     .card .price {
@@ -269,7 +320,7 @@
       text-transform: uppercase;
     }
 
-    .admin-form input {
+    .admin-form input, .admin-form select {
       width: 100%;
       padding: 10px;
       border-radius: 4px;
@@ -351,6 +402,19 @@
     <p class="frete-notice">Para opções de frete, consulte atendente da loja!</p>
   </section>
 
+  <!-- FILTRO DE CATEGORIAS -->
+  <nav class="categories-bar">
+    <button class="cat-btn active" onclick="filtrarCategoria('TODOS', this)">Todos</button>
+    <button class="cat-btn" onclick="filtrarCategoria('Maquiagem', this)">Maquiagem</button>
+    <button class="cat-btn" onclick="filtrarCategoria('Skin care', this)">Skin care</button>
+    <button class="cat-btn" onclick="filtrarCategoria('Cosméticos', this)">Cosméticos</button>
+    <button class="cat-btn" onclick="filtrarCategoria('Joias', this)">Joias</button>
+    <button class="cat-btn" onclick="filtrarCategoria('Colar', this)">Colar</button>
+    <button class="cat-btn" onclick="filtrarCategoria('Anéis', this)">Anéis</button>
+    <button class="cat-btn" onclick="filtrarCategoria('Pulseiras', this)">Pulseiras</button>
+    <button class="cat-btn" onclick="filtrarCategoria('Brincos', this)">Brincos</button>
+  </nav>
+
   <main class="container">
     <div class="grid" id="produtos-container">
       <!-- Produtos inseridos dinamicamente -->
@@ -387,8 +451,20 @@
       <span class="close-modal" onclick="fecharModais()">&times;</span>
       <h3>CADASTRAR NOVO PRODUTO</h3>
       <form class="admin-form" onsubmit="salvarProduto(event)">
-        <label>Nome da Joia</label>
-        <input type="text" id="prod-nome" required placeholder="Ex: Anel Solitário Prata">
+        <label>Nome do Produto</label>
+        <input type="text" id="prod-nome" required placeholder="Ex: Batom Matte / Anel Solitário">
+
+        <label>Categoria</label>
+        <select id="prod-categoria" required>
+          <option value="Joias">Joias</option>
+          <option value="Colar">Colar</option>
+          <option value="Anéis">Anéis</option>
+          <option value="Pulseiras">Pulseiras</option>
+          <option value="Brincos">Brincos</option>
+          <option value="Maquiagem">Maquiagem</option>
+          <option value="Skin care">Skin care</option>
+          <option value="Cosméticos">Cosméticos</option>
+        </select>
 
         <label>Valor (R$)</label>
         <input type="number" step="0.01" id="prod-valor" required placeholder="Ex: 49.90">
@@ -407,7 +483,7 @@
   </div>
 
   <footer>
-    <p>MI CHARM JOIAS | TODOS OS DIREITOS RESERVADOS</p>
+    <p>MI CHARM JOIAS & COSMÉTICOS | TODOS OS DIREITOS RESERVADOS</p>
   </footer>
 
   <script>
@@ -423,6 +499,7 @@
     let modoAdmin = false;
     let listaProdutosGlobal = [];
     let carrinho = [];
+    let categoriaAtual = 'TODOS';
 
     // 1. Carregar Produtos direto da Nuvem
     async function carregarProdutos() {
@@ -450,7 +527,7 @@
       }
     }
 
-    // 2. Salvar Mudanças Globais na Nuvem
+    // 2. Salvar Mudancas Globais na Nuvem
     async function salvarMudancasGlobais() {
       localStorage.setItem('produtos_local', JSON.stringify(listaProdutosGlobal));
       renderizarGrid();
@@ -473,6 +550,14 @@
       }
     }
 
+    // Filtrar Categoria ao clicar nos botões do topo
+    function filtrarCategoria(categoria, elemento) {
+      categoriaAtual = categoria;
+      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+      if(elemento) elemento.classList.add('active');
+      renderizarGrid();
+    }
+
     // Renderizar a Grid de Produtos
     function renderizarGrid() {
       const container = document.getElementById('produtos-container');
@@ -482,18 +567,31 @@
         return;
       }
 
-      const produtosParaExibir = modoAdmin 
+      // Filtra por status de visibilidade e categoria selecionada
+      let produtosFiltrados = modoAdmin 
         ? listaProdutosGlobal 
         : listaProdutosGlobal.filter(p => p.ativo !== false);
 
-      container.innerHTML = produtosParaExibir.map((item) => {
+      if (categoriaAtual !== 'TODOS') {
+        produtosFiltrados = produtosFiltrados.filter(p => p.categoria === categoriaAtual);
+      }
+
+      if (produtosFiltrados.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">Nenhum produto encontrado na categoria "${categoriaAtual}".</p>`;
+        return;
+      }
+
+      container.innerHTML = produtosFiltrados.map((item) => {
         const idReal = listaProdutosGlobal.indexOf(item);
         const isAtivo = item.ativo !== false;
+        const codigoId = item.id ? `#${item.id}` : `#${idReal + 1}`;
 
         return `
           <div class="card ${!isAtivo ? 'inativo' : ''}">
-            <img src="${item.imagem}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x300/0d213a/d4af37?text=Joia'">
+            <span class="card-badge">${codigoId}</span>
+            <img src="${item.imagem}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x300/0d213a/d4af37?text=Produto'">
             <h3>${item.title.toUpperCase()} ${!isAtivo ? '<br><small style="color:var(--danger)">(INDISPONÍVEL)</small>' : ''}</h3>
+            <div class="category-tag">${item.categoria || 'Geral'}</div>
             <div class="price">R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</div>
             
             ${isAtivo ? `
@@ -518,7 +616,7 @@
       const produto = listaProdutosGlobal[index];
       carrinho.push(produto);
       atualizarContadorCarrinho();
-      alert(`"${produto.title}" foi adicionado ao carrinho!`);
+      alert(`"${produto.title}" (Cód: #${produto.id || index + 1}) foi adicionado ao carrinho!`);
     }
 
     function atualizarContadorCarrinho() {
@@ -536,10 +634,11 @@
         let total = 0;
         containerItens.innerHTML = carrinho.map((item, index) => {
           total += parseFloat(item.preco);
+          const codigoId = item.id ? `#${item.id}` : `#${listaProdutosGlobal.indexOf(item) + 1}`;
           return `
             <div class="cart-item">
               <div class="cart-item-info">
-                <h4>${item.title}</h4>
+                <h4><strong style="color:var(--gold);">${codigoId}</strong> - ${item.title}</h4>
                 <span>R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</span>
               </div>
               <button class="btn-remove-item" onclick="removerDoCarrinho(${index})">&times;</button>
@@ -570,7 +669,8 @@
 
       carrinho.forEach(item => {
         const precoFormatado = parseFloat(item.preco).toFixed(2).replace('.', ',');
-        mensagem += `• ${item.title} - R$ ${precoFormatado}\n`;
+        const codigoId = item.id ? `#${item.id}` : `#${listaProdutosGlobal.indexOf(item) + 1}`;
+        mensagem += `• [Cód: ${codigoId}] ${item.title} - R$ ${precoFormatado}\n`;
         total += parseFloat(item.preco);
       });
 
@@ -587,7 +687,7 @@
     }
 
     function excluirProduto(index) {
-      if (confirm('Tem certeza que deseja remover esta joia do catálogo?')) {
+      if (confirm('Tem certeza que deseja remover este produto do catálogo?')) {
         listaProdutosGlobal.splice(index, 1);
         salvarMudancasGlobais();
       }
@@ -665,6 +765,7 @@
       event.preventDefault();
       
       const nome = document.getElementById('prod-nome').value;
+      const categoria = document.getElementById('prod-categoria').value;
       const preco = parseFloat(document.getElementById('prod-valor').value);
 
       if (!imagemProcessadaBase64) {
@@ -672,8 +773,14 @@
         return;
       }
 
+      // Descobre o maior ID atual para definir o próximo sequencial
+      const maiorId = listaProdutosGlobal.reduce((max, item) => (item.id && item.id > max ? item.id : max), 0);
+      const novoId = maiorId + 1;
+
       const novoItem = {
+        id: novoId,
         title: nome,
+        categoria: categoria,
         preco: preco,
         imagem: imagemProcessadaBase64,
         ativo: true
@@ -683,7 +790,7 @@
       
       await salvarMudancasGlobais();
 
-      alert('Produto cadastrado e publicado na nuvem com sucesso!');
+      alert(`Produto #${novoId} ("${nome}") cadastrado com sucesso!`);
       fecharModais();
 
       document.getElementById('prod-nome').value = '';
