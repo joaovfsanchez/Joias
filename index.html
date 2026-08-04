@@ -75,11 +75,12 @@
       padding: 0 20px;
     }
     
-    /* Grid de Produtos */
+    /* Grid de Produtos Corrigido (Imede que a foto estique) */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
       gap: 25px;
+      justify-content: center;
     }
 
     .card {
@@ -93,6 +94,9 @@
       padding: 15px;
       position: relative;
       transition: transform 0.2s;
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto;
     }
 
     .card.inativo {
@@ -111,7 +115,7 @@
     }
 
     .card h3 {
-      font-size: 16px;
+      font-size: 15px;
       margin: 15px 0 5px 0;
       color: var(--white);
       letter-spacing: 1px;
@@ -277,7 +281,6 @@
       margin-bottom: 15px;
     }
 
-    /* Preview Quadrado da Foto */
     .preview-box {
       width: 120px;
       height: 120px;
@@ -399,7 +402,7 @@
           <img id="img-preview" alt="Prévia">
         </div>
 
-        <button type="submit" class="btn-admin" id="btn-salvar-prod">SALVAR E ADICIONAR AO CATÁLOGO</button>
+        <button type="submit" class="btn-admin">SALVAR E ADICIONAR AO CATÁLOGO</button>
       </form>
     </div>
   </div>
@@ -409,15 +412,13 @@
   </footer>
 
   <script>
-    const SENHA_MESTRE = "1234"; // Defina a senha do painel
+    const SENHA_MESTRE = "1234"; // Defina a senha do painel aqui
     let imagemProcessadaBase64 = "";
     let modoAdmin = false;
     let listaProdutosGlobal = [];
 
     // 1. Carregar Produtos do JSON e LocalStorage
     async function carregarProdutos() {
-      const container = document.getElementById('produtos-container');
-
       try {
         const response = await fetch('data/produtos.json?v=' + new Date().getTime());
         listaProdutosGlobal = await response.json();
@@ -428,11 +429,10 @@
       renderizarGrid();
     }
 
-    // Renderiza a lista na tela dependendo se o usuário é Admin ou Cliente
+    // Renderiza os produtos no catálogo
     function renderizarGrid() {
       const container = document.getElementById('produtos-container');
 
-      // Se for cliente comum, filtra apenas os ativos
       const produtosParaExibir = modoAdmin 
         ? listaProdutosGlobal 
         : listaProdutosGlobal.filter(p => p.ativo !== false);
@@ -444,7 +444,7 @@
         return `
           <div class="card ${!isAtivo ? 'inativo' : ''}">
             <img src="${item.imagem}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x300/0d213a/d4af37?text=Joia'">
-            <h3>${item.title.toUpperCase()} ${!isAtivo ? '<small>(INDISPONÍVEL)</small>' : ''}</h3>
+            <h3>${item.title.toUpperCase()} ${!isAtivo ? '<br><small style="color:var(--danger)">(INDISPONÍVEL)</small>' : ''}</h3>
             <div class="price">R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</div>
             
             ${isAtivo ? `
@@ -464,7 +464,7 @@
       }).join('');
     }
 
-    // 2. Alternar entre Ativo / Desativado (Pausar estoque)
+    // 2. Alternar entre Ativo e Desativado
     function alternarStatus(index) {
       listaProdutosGlobal[index].ativo = !(listaProdutosGlobal[index].ativo !== false);
       salvarMudancasGlobais();
@@ -478,14 +478,12 @@
       }
     }
 
-    // 4. Salva alterações no LocalStorage e prepara sincronização
     function salvarMudancasGlobais() {
       localStorage.setItem('produtos_local', JSON.stringify(listaProdutosGlobal));
       renderizarGrid();
-      alert('Alteração salva localmente! Lembre-se de sincronizar o arquivo data/produtos.json para refletir em todos os aparelhos.');
     }
 
-    // 5. Crop Quadrado e Otimização de Imagem
+    // 4. Recorte e Compressão da Imagem Quadrada
     function processarImagem(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -517,7 +515,7 @@
       reader.readAsDataURL(file);
     }
 
-    // 6. Clique de 3 Segundos no Título
+    // 5. Clique de 3 Segundos no Título
     const tituloHeader = document.getElementById('brand-title');
     let timerPressionar;
 
@@ -535,7 +533,7 @@
     tituloHeader.addEventListener('touchstart', iniciarContagem);
     tituloHeader.addEventListener('touchend', cancelarContagem);
 
-    // 7. Login e Painel
+    // 6. Login
     function validarSenha() {
       const senhaDigitada = document.getElementById('admin-pass').value;
       if (senhaDigitada === SENHA_MESTRE) {
@@ -543,7 +541,7 @@
         document.getElementById('modal-login').style.display = 'none';
         document.getElementById('modal-cadastro').style.display = 'flex';
         document.getElementById('admin-pass').value = '';
-        renderizarGrid(); // Mostra botões de admin nos cards
+        renderizarGrid();
       } else {
         alert('Senha incorreta!');
       }
@@ -554,7 +552,7 @@
       document.getElementById('modal-cadastro').style.display = 'none';
     }
 
-    // 8. Cadastrar Novo Produto
+    // 7. Cadastrar Novo Produto
     function salvarProduto(event) {
       event.preventDefault();
       
@@ -573,13 +571,13 @@
         ativo: true
       };
 
-      listaProdutosGlobal.unshift(novoItem); // Adiciona no início da lista
+      listaProdutosGlobal.unshift(novoItem);
       salvarMudancasGlobais();
 
       alert('Produto cadastrado com sucesso!');
       fecharModais();
 
-      // Reset
+      // Reset dos campos
       document.getElementById('prod-nome').value = '';
       document.getElementById('prod-valor').value = '';
       document.getElementById('prod-foto-file').value = '';
@@ -588,7 +586,7 @@
       imagemProcessadaBase64 = "";
     }
 
-    // 9. Calculadora de Frete
+    // 8. Calculadora de Frete
     async function calcularFrete() {
       const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
       const container = document.getElementById('resultado-frete');
