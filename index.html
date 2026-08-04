@@ -19,7 +19,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg-dark);
       color: var(--white);
-      user-select: none; /* Evita selecionar o texto no clique longo */
+      user-select: none;
     }
     
     header {
@@ -39,9 +39,7 @@
       transition: opacity 0.3s;
     }
 
-    header h1:active {
-      opacity: 0.7;
-    }
+    header h1:active { opacity: 0.7; }
 
     nav a {
       color: var(--white);
@@ -98,7 +96,7 @@
 
     .card img {
       width: 100%;
-      height: 220px;
+      height: 240px;
       object-fit: cover;
       border-radius: 4px;
       background-color: #050c1a;
@@ -248,6 +246,34 @@
       margin-bottom: 15px;
     }
 
+    /* Preview Quadrado da Foto */
+    .preview-box {
+      width: 120px;
+      height: 120px;
+      border: 1px dashed var(--gold);
+      margin: 0 auto 15px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 6px;
+      background-color: #050c1a;
+    }
+
+    .preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .preview-box span {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 5px;
+    }
+
     .btn-admin {
       width: 100%;
       background-color: var(--gold);
@@ -335,8 +361,14 @@
         <label>Valor (R$)</label>
         <input type="number" step="0.01" id="prod-valor" required placeholder="Ex: 49.90">
 
-        <label>Foto (Link/Caminho)</label>
-        <input type="text" id="prod-foto" placeholder="img/foto.jpg ou link de imagem na web">
+        <label>Selecione a Foto do Celular</label>
+        <input type="file" id="prod-foto-file" accept="image/*" onchange="processarImagem(event)" required>
+
+        <!-- Preview da Imagem Quadrada Recortada -->
+        <div class="preview-box">
+          <span id="preview-placeholder">Prévia da Foto (Quadrada)</span>
+          <img id="img-preview" alt="Prévia">
+        </div>
 
         <button type="submit" class="btn-admin">SALVAR E ADICIONAR AO CATÁLOGO</button>
       </form>
@@ -348,9 +380,10 @@
   </footer>
 
   <script>
-    const SENHA_MESTRE = "1234"; // Altere a senha do painel aqui
+    const SENHA_MESTRE = "1234"; // Defina a senha aqui
+    let imagemProcessadaBase64 = ""; // Guarda a imagem recortada e convertida
 
-    // 1. Carregar Produtos Iniciais (do JSON e do cache local)
+    // 1. Carregar Produtos
     async function carregarProdutos() {
       const container = document.getElementById('produtos-container');
       let produtos = [];
@@ -362,7 +395,6 @@
         console.warn('Usando lista vazia ou salvamentos locais.');
       }
 
-      // Adiciona itens extras salvos localmente
       const salvosLocais = JSON.parse(localStorage.getItem('produtos_extra') || '[]');
       const listaCompleta = [...produtos, ...salvosLocais];
 
@@ -376,29 +408,64 @@
       `).join('');
     }
 
-    // 2. Evento de Clique Longo (3 Segundos) no Título "MI CHARM"
+    // 2. Processador e Cortador Automático de Imagem (Formato Quadrado 1:1 / JPEG Otimizado)
+    function processarImagem(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          // Cria o Canvas
+          const canvas = document.createElement('canvas');
+          const tamanhoDesejado = 600; // Tamanho ideal em pixels (600x600)
+          canvas.width = tamanhoDesejado;
+          canvas.height = tamanhoDesejado;
+
+          const ctx = canvas.getContext('2d');
+
+          // Lógica de corte centralizado (Crop Quadrado)
+          let minDim = Math.min(img.width, img.height);
+          let sx = (img.width - minDim) / 2;
+          let sy = (img.height - minDim) / 2;
+
+          // Desenha a imagem cortada no canvas
+          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, tamanhoDesejado, tamanhoDesejado);
+
+          // Converte para JPEG otimizado (qualidade 85%)
+          imagemProcessadaBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+          // Exibe no preview
+          const previewImg = document.getElementById('img-preview');
+          previewImg.src = imagemProcessadaBase64;
+          previewImg.style.display = 'block';
+          document.getElementById('preview-placeholder').style.display = 'none';
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 3. Clique de 3 Segundos no Título "MI CHARM"
     const tituloHeader = document.getElementById('brand-title');
     let timerPressionar;
 
     function iniciarContagem() {
       timerPressionar = setTimeout(() => {
         document.getElementById('modal-login').style.display = 'flex';
-      }, 3000); // 3000ms = 3 segundos
+      }, 3000);
     }
 
-    function cancelarContagem() {
-      clearTimeout(timerPressionar);
-    }
+    function cancelarContagem() { clearTimeout(timerPressionar); }
 
-    // Eventos para Computador e Telas Touch (Celulares)
     tituloHeader.addEventListener('mousedown', iniciarContagem);
     tituloHeader.addEventListener('mouseup', cancelarContagem);
     tituloHeader.addEventListener('mouseleave', cancelarContagem);
-
     tituloHeader.addEventListener('touchstart', iniciarContagem);
     tituloHeader.addEventListener('touchend', cancelarContagem);
 
-    // 3. Validação da Senha
+    // 4. Validação da Senha
     function validarSenha() {
       const senhaDigitada = document.getElementById('admin-pass').value;
       if (senhaDigitada === SENHA_MESTRE) {
@@ -415,22 +482,24 @@
       document.getElementById('modal-cadastro').style.display = 'none';
     }
 
-    // 4. Salvar Produto
+    // 5. Salvar Produto no Catálogo
     function salvarProduto(event) {
       event.preventDefault();
       
       const nome = document.getElementById('prod-nome').value;
       const preco = parseFloat(document.getElementById('prod-valor').value);
-      const foto = document.getElementById('prod-foto').value || 'https://via.placeholder.com/300x300/0d213a/d4af37?text=Joia';
 
-      const novoItem = { title: nome, preco: preco, imagem: foto };
+      if (!imagemProcessadaBase64) {
+        alert('Aguarde o carregamento da imagem ou selecione outra.');
+        return;
+      }
 
-      // Salva no LocalStorage do navegador
+      const novoItem = { title: nome, preco: preco, imagem: imagemProcessadaBase64 };
+
       const salvosLocais = JSON.parse(localStorage.getItem('produtos_extra') || '[]');
       salvosLocais.push(novoItem);
       localStorage.setItem('produtos_extra', JSON.stringify(salvosLocais));
 
-      // Recarrega o grid
       carregarProdutos();
       alert('Produto cadastrado com sucesso!');
       fecharModais();
@@ -438,10 +507,13 @@
       // Limpa os campos
       document.getElementById('prod-nome').value = '';
       document.getElementById('prod-valor').value = '';
-      document.getElementById('prod-foto').value = '';
+      document.getElementById('prod-foto-file').value = '';
+      document.getElementById('img-preview').style.display = 'none';
+      document.getElementById('preview-placeholder').style.display = 'block';
+      imagemProcessadaBase64 = "";
     }
 
-    // 5. Função do Simulador de Frete
+    // 6. Calculadora de Frete
     async function calcularFrete() {
       const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
       const container = document.getElementById('resultado-frete');
@@ -479,7 +551,6 @@
       }
     }
 
-    // Inicializa a página
     carregarProdutos();
   </script>
 </body>
