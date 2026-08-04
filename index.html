@@ -11,6 +11,8 @@
       --gold: #d4af37;
       --white: #ffffff;
       --text-muted: #a8b2d1;
+      --danger: #ff4d4d;
+      --success: #2ecc71;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -89,7 +91,13 @@
       flex-direction: column;
       text-align: center;
       padding: 15px;
+      position: relative;
       transition: transform 0.2s;
+    }
+
+    .card.inativo {
+      opacity: 0.5;
+      border-color: #555;
     }
 
     .card:hover { transform: translateY(-5px); }
@@ -135,6 +143,29 @@
       color: var(--bg-dark);
       border-color: var(--gold);
     }
+
+    /* Controles de Admin nos Cards */
+    .admin-controls {
+      display: flex;
+      gap: 5px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(212, 175, 55, 0.3);
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 6px;
+      font-size: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .btn-toggle { background-color: #3498db; color: white; }
+    .btn-delete { background-color: var(--danger); color: white; }
 
     /* Caixa do Simulador de Frete */
     .frete-section {
@@ -320,7 +351,6 @@
   </section>
 
   <main class="container">
-    <!-- Grid de Produtos -->
     <div class="grid" id="produtos-container">
       <!-- Produtos inseridos dinamicamente -->
     </div>
@@ -364,13 +394,12 @@
         <label>Selecione a Foto do Celular</label>
         <input type="file" id="prod-foto-file" accept="image/*" onchange="processarImagem(event)" required>
 
-        <!-- Preview da Imagem Quadrada Recortada -->
         <div class="preview-box">
           <span id="preview-placeholder">Prévia da Foto (Quadrada)</span>
           <img id="img-preview" alt="Prévia">
         </div>
 
-        <button type="submit" class="btn-admin">SALVAR E ADICIONAR AO CATÁLOGO</button>
+        <button type="submit" class="btn-admin" id="btn-salvar-prod">SALVAR E ADICIONAR AO CATÁLOGO</button>
       </form>
     </div>
   </div>
@@ -380,35 +409,83 @@
   </footer>
 
   <script>
-    const SENHA_MESTRE = "1234"; // Defina a senha aqui
-    let imagemProcessadaBase64 = ""; // Guarda a imagem recortada e convertida
+    const SENHA_MESTRE = "1234"; // Defina a senha do painel
+    let imagemProcessadaBase64 = "";
+    let modoAdmin = false;
+    let listaProdutosGlobal = [];
 
-    // 1. Carregar Produtos
+    // 1. Carregar Produtos do JSON e LocalStorage
     async function carregarProdutos() {
       const container = document.getElementById('produtos-container');
-      let produtos = [];
 
       try {
-        const response = await fetch('data/produtos.json');
-        produtos = await response.json();
+        const response = await fetch('data/produtos.json?v=' + new Date().getTime());
+        listaProdutosGlobal = await response.json();
       } catch (err) {
-        console.warn('Usando lista vazia ou salvamentos locais.');
+        listaProdutosGlobal = JSON.parse(localStorage.getItem('produtos_local') || '[]');
       }
 
-      const salvosLocais = JSON.parse(localStorage.getItem('produtos_extra') || '[]');
-      const listaCompleta = [...produtos, ...salvosLocais];
-
-      container.innerHTML = listaCompleta.map(item => `
-        <div class="card">
-          <img src="${item.imagem}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x300/0d213a/d4af37?text=Joia'">
-          <h3>${item.title.toUpperCase()}</h3>
-          <div class="price">R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</div>
-          <a href="https://wa.me/5500000000000?text=Olá,%20gostaria%20de%20saber%20mais%20sobre:%20${encodeURIComponent(item.title)}" target="_blank" class="btn-whatsapp">VER MAIS / COMPRAR</a>
-        </div>
-      `).join('');
+      renderizarGrid();
     }
 
-    // 2. Processador e Cortador Automático de Imagem (Formato Quadrado 1:1 / JPEG Otimizado)
+    // Renderiza a lista na tela dependendo se o usuário é Admin ou Cliente
+    function renderizarGrid() {
+      const container = document.getElementById('produtos-container');
+
+      // Se for cliente comum, filtra apenas os ativos
+      const produtosParaExibir = modoAdmin 
+        ? listaProdutosGlobal 
+        : listaProdutosGlobal.filter(p => p.ativo !== false);
+
+      container.innerHTML = produtosParaExibir.map((item, index) => {
+        const idReal = listaProdutosGlobal.indexOf(item);
+        const isAtivo = item.ativo !== false;
+
+        return `
+          <div class="card ${!isAtivo ? 'inativo' : ''}">
+            <img src="${item.imagem}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x300/0d213a/d4af37?text=Joia'">
+            <h3>${item.title.toUpperCase()} ${!isAtivo ? '<small>(INDISPONÍVEL)</small>' : ''}</h3>
+            <div class="price">R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</div>
+            
+            ${isAtivo ? `
+              <a href="https://wa.me/5500000000000?text=Olá,%20gostaria%20de%20saber%20mais%20sobre:%20${encodeURIComponent(item.title)}" target="_blank" class="btn-whatsapp">VER MAIS / COMPRAR</a>
+            ` : '<span style="color:var(--text-muted); font-size:12px;">PRODUTO PAUSADO</span>'}
+
+            ${modoAdmin ? `
+              <div class="admin-controls">
+                <button class="btn-action btn-toggle" onclick="alternarStatus(${idReal})">
+                  ${isAtivo ? 'Desativar' : 'Ativar'}
+                </button>
+                <button class="btn-action btn-delete" onclick="excluirProduto(${idReal})">Excluir</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 2. Alternar entre Ativo / Desativado (Pausar estoque)
+    function alternarStatus(index) {
+      listaProdutosGlobal[index].ativo = !(listaProdutosGlobal[index].ativo !== false);
+      salvarMudancasGlobais();
+    }
+
+    // 3. Excluir Produto
+    function excluirProduto(index) {
+      if (confirm('Tem certeza que deseja remover esta joia do catálogo?')) {
+        listaProdutosGlobal.splice(index, 1);
+        salvarMudancasGlobais();
+      }
+    }
+
+    // 4. Salva alterações no LocalStorage e prepara sincronização
+    function salvarMudancasGlobais() {
+      localStorage.setItem('produtos_local', JSON.stringify(listaProdutosGlobal));
+      renderizarGrid();
+      alert('Alteração salva localmente! Lembre-se de sincronizar o arquivo data/produtos.json para refletir em todos os aparelhos.');
+    }
+
+    // 5. Crop Quadrado e Otimização de Imagem
     function processarImagem(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -417,26 +494,19 @@
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
-          // Cria o Canvas
           const canvas = document.createElement('canvas');
-          const tamanhoDesejado = 600; // Tamanho ideal em pixels (600x600)
-          canvas.width = tamanhoDesejado;
-          canvas.height = tamanhoDesejado;
+          const tamanho = 500; // 500x500 px
+          canvas.width = tamanho;
+          canvas.height = tamanho;
 
           const ctx = canvas.getContext('2d');
-
-          // Lógica de corte centralizado (Crop Quadrado)
           let minDim = Math.min(img.width, img.height);
           let sx = (img.width - minDim) / 2;
           let sy = (img.height - minDim) / 2;
 
-          // Desenha a imagem cortada no canvas
-          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, tamanhoDesejado, tamanhoDesejado);
+          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, tamanho, tamanho);
+          imagemProcessadaBase64 = canvas.toDataURL('image/jpeg', 0.80);
 
-          // Converte para JPEG otimizado (qualidade 85%)
-          imagemProcessadaBase64 = canvas.toDataURL('image/jpeg', 0.85);
-
-          // Exibe no preview
           const previewImg = document.getElementById('img-preview');
           previewImg.src = imagemProcessadaBase64;
           previewImg.style.display = 'block';
@@ -447,7 +517,7 @@
       reader.readAsDataURL(file);
     }
 
-    // 3. Clique de 3 Segundos no Título "MI CHARM"
+    // 6. Clique de 3 Segundos no Título
     const tituloHeader = document.getElementById('brand-title');
     let timerPressionar;
 
@@ -465,13 +535,15 @@
     tituloHeader.addEventListener('touchstart', iniciarContagem);
     tituloHeader.addEventListener('touchend', cancelarContagem);
 
-    // 4. Validação da Senha
+    // 7. Login e Painel
     function validarSenha() {
       const senhaDigitada = document.getElementById('admin-pass').value;
       if (senhaDigitada === SENHA_MESTRE) {
+        modoAdmin = true;
         document.getElementById('modal-login').style.display = 'none';
         document.getElementById('modal-cadastro').style.display = 'flex';
         document.getElementById('admin-pass').value = '';
+        renderizarGrid(); // Mostra botões de admin nos cards
       } else {
         alert('Senha incorreta!');
       }
@@ -482,7 +554,7 @@
       document.getElementById('modal-cadastro').style.display = 'none';
     }
 
-    // 5. Salvar Produto no Catálogo
+    // 8. Cadastrar Novo Produto
     function salvarProduto(event) {
       event.preventDefault();
       
@@ -490,21 +562,24 @@
       const preco = parseFloat(document.getElementById('prod-valor').value);
 
       if (!imagemProcessadaBase64) {
-        alert('Aguarde o carregamento da imagem ou selecione outra.');
+        alert('Selecione uma foto válida.');
         return;
       }
 
-      const novoItem = { title: nome, preco: preco, imagem: imagemProcessadaBase64 };
+      const novoItem = {
+        title: nome,
+        preco: preco,
+        imagem: imagemProcessadaBase64,
+        ativo: true
+      };
 
-      const salvosLocais = JSON.parse(localStorage.getItem('produtos_extra') || '[]');
-      salvosLocais.push(novoItem);
-      localStorage.setItem('produtos_extra', JSON.stringify(salvosLocais));
+      listaProdutosGlobal.unshift(novoItem); // Adiciona no início da lista
+      salvarMudancasGlobais();
 
-      carregarProdutos();
       alert('Produto cadastrado com sucesso!');
       fecharModais();
 
-      // Limpa os campos
+      // Reset
       document.getElementById('prod-nome').value = '';
       document.getElementById('prod-valor').value = '';
       document.getElementById('prod-foto-file').value = '';
@@ -513,13 +588,13 @@
       imagemProcessadaBase64 = "";
     }
 
-    // 6. Calculadora de Frete
+    // 9. Calculadora de Frete
     async function calcularFrete() {
       const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
       const container = document.getElementById('resultado-frete');
 
       if (cep.length !== 8) {
-        alert('Digite um CEP válido com 8 dígitos.');
+        alert('Digite um CEP válido.');
         return;
       }
 
@@ -528,11 +603,10 @@
       try {
         const res = await fetch(`https://calculador-frete-joias.joaovfsanchez.workers.dev/?cep=${cep}`);
         const dados = await res.json();
-
         const validos = dados.filter(item => !item.error);
 
         if (validos.length === 0) {
-          container.innerHTML = '<p style="color: #ff6b6b; text-align: center;">Nenhum frete disponível para este CEP.</p>';
+          container.innerHTML = '<p style="color: #ff6b6b; text-align: center;">Nenhum frete disponível.</p>';
           return;
         }
 
@@ -545,7 +619,6 @@
             <span style="font-weight: bold; color: #4caf50;">R$ ${parseFloat(item.price).toFixed(2).replace('.', ',')}</span>
           </div>
         `).join('');
-
       } catch (err) {
         container.innerHTML = '<p style="color: #ff6b6b; text-align: center;">Erro ao consultar frete.</p>';
       }
