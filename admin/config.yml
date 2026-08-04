@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: SEU_USUARIO/SEU_REPOSITORIO # Exemplo: joaovfsanchez/catalogo-joias
+  repo: joaovfsanchez/Joias # Exemplo: joaovfsanchez/catalogo-joias
   branch: main # ou master
   site_domain: catalogo-joias.netlify.app # Necessário para o login OAuth do GitHub
 
