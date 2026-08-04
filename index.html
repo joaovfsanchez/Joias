@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo de Joias</title>
+  <title>Mi Charm - Joias</title>
   <style>
     :root {
       --bg-dark: #0a192f;
@@ -12,45 +12,276 @@
       --white: #ffffff;
       --text-muted: #a8b2d1;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-dark); color: var(--white); }
     
-    header { background-color: #050c1a; padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212, 175, 55, 0.2); }
-    header h1 { color: var(--gold); font-size: 24px; letter-spacing: 2px; }
-    nav a { color: var(--white); text-decoration: none; margin-left: 20px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--white);
+      user-select: none; /* Evita selecionar o texto no clique longo */
+    }
+    
+    header {
+      background-color: #050c1a;
+      padding: 20px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    header h1 {
+      color: var(--gold);
+      font-size: 24px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    header h1:active {
+      opacity: 0.7;
+    }
+
+    nav a {
+      color: var(--white);
+      text-decoration: none;
+      margin-left: 20px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
     nav a:hover { color: var(--gold); }
 
-    .hero { text-align: center; padding: 40px 20px; background: linear-gradient(180deg, #050c1a 0%, var(--bg-dark) 100%); border-bottom: 1px solid rgba(212, 175, 55, 0.1); }
-    .hero h2 { color: var(--gold); font-size: 28px; letter-spacing: 3px; font-weight: 300; margin-bottom: 10px; }
+    .hero {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(180deg, #050c1a 0%, var(--bg-dark) 100%);
+      border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    }
 
-    .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+    .hero h2 {
+      color: var(--gold);
+      font-size: 28px;
+      letter-spacing: 3px;
+      font-weight: 300;
+      margin-bottom: 10px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
     
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; }
-    .card { background-color: var(--card-bg); border: 1px solid var(--gold); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; text-align: center; padding: 15px; transition: transform 0.2s; }
-    .card:hover { transform: translateY(-5px); }
-    .card img { width: 100%; height: 220px; object-fit: cover; border-radius: 4px; background-color: #050c1a; }
-    .card h3 { font-size: 16px; margin: 15px 0 5px 0; color: var(--white); letter-spacing: 1px; }
-    .card .price { color: var(--gold); font-size: 18px; font-weight: bold; margin-bottom: 12px; }
-    .card .btn-whatsapp { background-color: transparent; color: var(--white); border: 1px solid var(--white); padding: 8px 16px; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s; }
-    .card .btn-whatsapp:hover { background-color: var(--gold); color: var(--bg-dark); border-color: var(--gold); }
+    /* Grid de Produtos */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 25px;
+    }
 
-    /* Caixa de Frete */
-    .frete-section { background-color: var(--card-bg); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 8px; padding: 25px; margin-top: 50px; max-width: 500px; margin-left: auto; margin-right: auto; text-align: center; }
-    .frete-section h3 { color: var(--gold); margin-bottom: 15px; font-weight: 400; letter-spacing: 1px; }
-    .frete-form { display: flex; gap: 10px; justify-content: center; }
-    .frete-form input { padding: 10px; border-radius: 4px; border: 1px solid var(--gold); background-color: #050c1a; color: var(--white); outline: none; width: 60%; }
-    .frete-form button { background-color: var(--gold); color: var(--bg-dark); border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+      padding: 15px;
+      transition: transform 0.2s;
+    }
+
+    .card:hover { transform: translateY(-5px); }
+
+    .card img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 4px;
+      background-color: #050c1a;
+    }
+
+    .card h3 {
+      font-size: 16px;
+      margin: 15px 0 5px 0;
+      color: var(--white);
+      letter-spacing: 1px;
+    }
+
+    .card .price {
+      color: var(--gold);
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .card .btn-whatsapp {
+      background-color: transparent;
+      color: var(--white);
+      border: 1px solid var(--white);
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s;
+    }
+
+    .card .btn-whatsapp:hover {
+      background-color: var(--gold);
+      color: var(--bg-dark);
+      border-color: var(--gold);
+    }
+
+    /* Caixa do Simulador de Frete */
+    .frete-section {
+      background-color: var(--card-bg);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 8px;
+      padding: 25px;
+      margin-top: 50px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+
+    .frete-section h3 {
+      color: var(--gold);
+      margin-bottom: 15px;
+      font-weight: 400;
+      letter-spacing: 1px;
+    }
+
+    .frete-form {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .frete-form input {
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid var(--gold);
+      background-color: #050c1a;
+      color: var(--white);
+      outline: none;
+      width: 60%;
+    }
+
+    .frete-form button {
+      background-color: var(--gold);
+      color: var(--bg-dark);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     #resultado-frete { margin-top: 20px; text-align: left; }
-    .frete-item { background: #050c1a; border: 1px solid rgba(212, 175, 55, 0.2); padding: 10px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+    .frete-item {
+      background: #050c1a;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     .frete-item small { color: var(--text-muted); }
 
-    footer { text-align: center; padding: 30px; background-color: #050c1a; margin-top: 60px; font-size: 12px; color: var(--text-muted); border-top: 1px solid rgba(212, 175, 55, 0.2); }
+    /* Modais Ocultos do Admin */
+    .modal-admin {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(5, 12, 26, 0.95);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: var(--card-bg);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 30px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+      position: relative;
+    }
+
+    .modal-content h3 {
+      color: var(--gold);
+      margin-bottom: 20px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .admin-form label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .admin-form input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid var(--gold);
+      background-color: #050c1a;
+      color: var(--white);
+      outline: none;
+      margin-bottom: 15px;
+    }
+
+    .btn-admin {
+      width: 100%;
+      background-color: var(--gold);
+      color: var(--bg-dark);
+      border: none;
+      padding: 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 10px; right: 15px;
+      color: var(--white);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      background-color: #050c1a;
+      margin-top: 60px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>MI CHARM</h1>
+    <h1 id="brand-title" title="Segure por 3 segundos para gerenciar">MI CHARM</h1>
     <nav>
       <a href="#">Novidades</a>
       <a href="#">Joias</a>
@@ -65,7 +296,7 @@
   <main class="container">
     <!-- Grid de Produtos -->
     <div class="grid" id="produtos-container">
-      <!-- Produtos inseridos dinamicamente via JS -->
+      <!-- Produtos inseridos dinamicamente -->
     </div>
 
     <!-- Simulador de Frete -->
@@ -79,32 +310,138 @@
     </section>
   </main>
 
+  <!-- MODAL 1: Login de Acesso Oculto -->
+  <div id="modal-login" class="modal-admin">
+    <div class="modal-content">
+      <span class="close-modal" onclick="fecharModais()">&times;</span>
+      <h3>ACESSO ADMINISTRATIVO</h3>
+      <div class="admin-form">
+        <label>Senha de Acesso</label>
+        <input type="password" id="admin-pass" placeholder="****">
+        <button class="btn-admin" onclick="validarSenha()">ENTRAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Cadastro de Novo Produto -->
+  <div id="modal-cadastro" class="modal-admin">
+    <div class="modal-content">
+      <span class="close-modal" onclick="fecharModais()">&times;</span>
+      <h3>CADASTRAR NOVO PRODUTO</h3>
+      <form class="admin-form" onsubmit="salvarProduto(event)">
+        <label>Nome da Joia</label>
+        <input type="text" id="prod-nome" required placeholder="Ex: Anel Solitário Prata">
+
+        <label>Valor (R$)</label>
+        <input type="number" step="0.01" id="prod-valor" required placeholder="Ex: 49.90">
+
+        <label>Foto (Link/Caminho)</label>
+        <input type="text" id="prod-foto" placeholder="img/foto.jpg ou link de imagem na web">
+
+        <button type="submit" class="btn-admin">SALVAR E ADICIONAR AO CATÁLOGO</button>
+      </form>
+    </div>
+  </div>
+
   <footer>
-    <p>CONTATO | ENVIO & DEVOLUÇÃO | POLÍTICA DE PRIVACIDADE</p>
+    <p>MI CHARM JOIAS | TODOS OS DIREITOS RESERVADOS</p>
   </footer>
 
   <script>
-    // 1. Carregar Produtos
+    const SENHA_MESTRE = "1234"; // Altere a senha do painel aqui
+
+    // 1. Carregar Produtos Iniciais (do JSON e do cache local)
     async function carregarProdutos() {
+      const container = document.getElementById('produtos-container');
+      let produtos = [];
+
       try {
         const response = await fetch('data/produtos.json');
-        const produtos = await response.json();
-        const container = document.getElementById('produtos-container');
-
-        container.innerHTML = produtos.map(item => `
-          <div class="card">
-            <img src="${item.imagem}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x300/0d213a/d4af37?text=Joia'">
-            <h3>${item.title.toUpperCase()}</h3>
-            <div class="price">R$ ${item.preco.toFixed(2).replace('.', ',')}</div>
-            <a href="https://wa.me/5500000000000?text=Olá,%20gostaria%20de%20saber%20mais%20sobre:%20${encodeURIComponent(item.title)}" target="_blank" class="btn-whatsapp">VER MAIS / COMPRAR</a>
-          </div>
-        `).join('');
+        produtos = await response.json();
       } catch (err) {
-        console.error('Erro ao carregar produtos:', err);
+        console.warn('Usando lista vazia ou salvamentos locais.');
+      }
+
+      // Adiciona itens extras salvos localmente
+      const salvosLocais = JSON.parse(localStorage.getItem('produtos_extra') || '[]');
+      const listaCompleta = [...produtos, ...salvosLocais];
+
+      container.innerHTML = listaCompleta.map(item => `
+        <div class="card">
+          <img src="${item.imagem}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x300/0d213a/d4af37?text=Joia'">
+          <h3>${item.title.toUpperCase()}</h3>
+          <div class="price">R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</div>
+          <a href="https://wa.me/5500000000000?text=Olá,%20gostaria%20de%20saber%20mais%20sobre:%20${encodeURIComponent(item.title)}" target="_blank" class="btn-whatsapp">VER MAIS / COMPRAR</a>
+        </div>
+      `).join('');
+    }
+
+    // 2. Evento de Clique Longo (3 Segundos) no Título "MI CHARM"
+    const tituloHeader = document.getElementById('brand-title');
+    let timerPressionar;
+
+    function iniciarContagem() {
+      timerPressionar = setTimeout(() => {
+        document.getElementById('modal-login').style.display = 'flex';
+      }, 3000); // 3000ms = 3 segundos
+    }
+
+    function cancelarContagem() {
+      clearTimeout(timerPressionar);
+    }
+
+    // Eventos para Computador e Telas Touch (Celulares)
+    tituloHeader.addEventListener('mousedown', iniciarContagem);
+    tituloHeader.addEventListener('mouseup', cancelarContagem);
+    tituloHeader.addEventListener('mouseleave', cancelarContagem);
+
+    tituloHeader.addEventListener('touchstart', iniciarContagem);
+    tituloHeader.addEventListener('touchend', cancelarContagem);
+
+    // 3. Validação da Senha
+    function validarSenha() {
+      const senhaDigitada = document.getElementById('admin-pass').value;
+      if (senhaDigitada === SENHA_MESTRE) {
+        document.getElementById('modal-login').style.display = 'none';
+        document.getElementById('modal-cadastro').style.display = 'flex';
+        document.getElementById('admin-pass').value = '';
+      } else {
+        alert('Senha incorreta!');
       }
     }
 
-    // 2. Calcular Frete via Cloudflare Worker
+    function fecharModais() {
+      document.getElementById('modal-login').style.display = 'none';
+      document.getElementById('modal-cadastro').style.display = 'none';
+    }
+
+    // 4. Salvar Produto
+    function salvarProduto(event) {
+      event.preventDefault();
+      
+      const nome = document.getElementById('prod-nome').value;
+      const preco = parseFloat(document.getElementById('prod-valor').value);
+      const foto = document.getElementById('prod-foto').value || 'https://via.placeholder.com/300x300/0d213a/d4af37?text=Joia';
+
+      const novoItem = { title: nome, preco: preco, imagem: foto };
+
+      // Salva no LocalStorage do navegador
+      const salvosLocais = JSON.parse(localStorage.getItem('produtos_extra') || '[]');
+      salvosLocais.push(novoItem);
+      localStorage.setItem('produtos_extra', JSON.stringify(salvosLocais));
+
+      // Recarrega o grid
+      carregarProdutos();
+      alert('Produto cadastrado com sucesso!');
+      fecharModais();
+
+      // Limpa os campos
+      document.getElementById('prod-nome').value = '';
+      document.getElementById('prod-valor').value = '';
+      document.getElementById('prod-foto').value = '';
+    }
+
+    // 5. Função do Simulador de Frete
     async function calcularFrete() {
       const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
       const container = document.getElementById('resultado-frete');
@@ -142,7 +479,7 @@
       }
     }
 
-    // Inicialização
+    // Inicializa a página
     carregarProdutos();
   </script>
 </body>
