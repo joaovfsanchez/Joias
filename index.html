@@ -31,6 +31,9 @@
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     header h1 {
@@ -43,16 +46,31 @@
 
     header h1:active { opacity: 0.7; }
 
-    nav a {
-      color: var(--white);
-      text-decoration: none;
-      margin-left: 20px;
+    /* Botão Flutuante/Topo do Carrinho */
+    .cart-btn-header {
+      background-color: var(--gold);
+      color: var(--bg-dark);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      transition: transform 0.2s;
     }
 
-    nav a:hover { color: var(--gold); }
+    .cart-btn-header:hover { transform: scale(1.05); }
+
+    .cart-count {
+      background-color: var(--bg-dark);
+      color: var(--gold);
+      border-radius: 50%;
+      padding: 2px 7px;
+      font-size: 12px;
+    }
 
     .hero {
       text-align: center;
@@ -75,7 +93,7 @@
       padding: 0 20px;
     }
     
-    /* Grid de Produtos Corrigido (Imede que a foto estique) */
+    /* Grid de Produtos */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
@@ -99,11 +117,7 @@
       margin: 0 auto;
     }
 
-    .card.inativo {
-      opacity: 0.5;
-      border-color: #555;
-    }
-
+    .card.inativo { opacity: 0.5; border-color: #555; }
     .card:hover { transform: translateY(-5px); }
 
     .card img {
@@ -128,27 +142,26 @@
       margin-bottom: 12px;
     }
 
-    .card .btn-whatsapp {
+    .btn-add-cart {
       background-color: transparent;
       color: var(--white);
-      border: 1px solid var(--white);
-      padding: 8px 16px;
+      border: 1px solid var(--gold);
+      padding: 10px;
       border-radius: 4px;
       cursor: pointer;
-      text-decoration: none;
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 1px;
+      font-weight: bold;
       transition: all 0.3s;
     }
 
-    .card .btn-whatsapp:hover {
+    .btn-add-cart:hover {
       background-color: var(--gold);
       color: var(--bg-dark);
-      border-color: var(--gold);
     }
 
-    /* Controles de Admin nos Cards */
+    /* Controles de Admin */
     .admin-controls {
       display: flex;
       gap: 5px;
@@ -171,7 +184,7 @@
     .btn-toggle { background-color: #3498db; color: white; }
     .btn-delete { background-color: var(--danger); color: white; }
 
-    /* Caixa do Simulador de Frete */
+    /* Simulador de Frete */
     .frete-section {
       background-color: var(--card-bg);
       border: 1px solid rgba(212, 175, 55, 0.3);
@@ -230,10 +243,8 @@
       align-items: center;
     }
 
-    .frete-item small { color: var(--text-muted); }
-
-    /* Modais Ocultos do Admin */
-    .modal-admin {
+    /* Modais Genericos */
+    .modal {
       display: none;
       position: fixed;
       top: 0; left: 0;
@@ -248,11 +259,13 @@
       background-color: var(--card-bg);
       border: 1px solid var(--gold);
       border-radius: 8px;
-      padding: 30px;
+      padding: 25px;
       width: 90%;
       max-width: 450px;
       box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
       position: relative;
+      max-height: 85vh;
+      overflow-y: auto;
     }
 
     .modal-content h3 {
@@ -260,6 +273,49 @@
       margin-bottom: 20px;
       text-align: center;
       letter-spacing: 1px;
+    }
+
+    /* Estilos do Carrinho */
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .cart-item-info h4 { font-size: 14px; color: var(--white); }
+    .cart-item-info span { font-size: 13px; color: var(--gold); }
+
+    .btn-remove-item {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 5px;
+    }
+
+    .cart-total {
+      margin-top: 20px;
+      text-align: right;
+      font-size: 18px;
+      color: var(--gold);
+      font-weight: bold;
+    }
+
+    .btn-whatsapp-send {
+      width: 100%;
+      background-color: #25d366;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+      font-size: 14px;
+      text-transform: uppercase;
     }
 
     .admin-form label {
@@ -342,11 +398,9 @@
 
   <header>
     <h1 id="brand-title" title="Segure por 3 segundos para gerenciar">MI CHARM</h1>
-    <nav>
-      <a href="#">Novidades</a>
-      <a href="#">Joias</a>
-      <a href="#">Contato</a>
-    </nav>
+    <button class="cart-btn-header" onclick="abrirCarrinho()">
+      🛒 CARRINHO <span class="cart-count" id="cart-count">0</span>
+    </button>
   </header>
 
   <section class="hero">
@@ -369,8 +423,21 @@
     </section>
   </main>
 
-  <!-- MODAL 1: Login de Acesso Oculto -->
-  <div id="modal-login" class="modal-admin">
+  <!-- MODAL DO CARRINHO DE COMPRAS -->
+  <div id="modal-carrinho" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="fecharModais()">&times;</span>
+      <h3>SEU CARRINHO</h3>
+      <div id="carrinho-itens">
+        <!-- Itens do carrinho aparecem aqui -->
+      </div>
+      <div class="cart-total" id="carrinho-total">Total: R$ 0,00</div>
+      <button class="btn-whatsapp-send" onclick="enviarPedidoWhatsApp()">FINALIZAR PEDIDO VIA WHATSAPP</button>
+    </div>
+  </div>
+
+  <!-- MODAL 1: Login Admin -->
+  <div id="modal-login" class="modal">
     <div class="modal-content">
       <span class="close-modal" onclick="fecharModais()">&times;</span>
       <h3>ACESSO ADMINISTRATIVO</h3>
@@ -382,8 +449,8 @@
     </div>
   </div>
 
-  <!-- MODAL 2: Cadastro de Novo Produto -->
-  <div id="modal-cadastro" class="modal-admin">
+  <!-- MODAL 2: Cadastro de Produto -->
+  <div id="modal-cadastro" class="modal">
     <div class="modal-content">
       <span class="close-modal" onclick="fecharModais()">&times;</span>
       <h3>CADASTRAR NOVO PRODUTO</h3>
@@ -412,12 +479,15 @@
   </footer>
 
   <script>
-    const SENHA_MESTRE = "1234"; // Defina a senha do painel aqui
+    const SENHA_MESTRE = "1234";
+    const NUMERO_WHATSAPP = "5574991309816"; // Número do WhatsApp dela
+    
     let imagemProcessadaBase64 = "";
     let modoAdmin = false;
     let listaProdutosGlobal = [];
+    let carrinho = [];
 
-    // 1. Carregar Produtos do JSON e LocalStorage
+    // 1. Carregar Produtos
     async function carregarProdutos() {
       try {
         const response = await fetch('data/produtos.json?v=' + new Date().getTime());
@@ -429,7 +499,7 @@
       renderizarGrid();
     }
 
-    // Renderiza os produtos no catálogo
+    // Renderizar a Grid de Produtos
     function renderizarGrid() {
       const container = document.getElementById('produtos-container');
 
@@ -448,7 +518,7 @@
             <div class="price">R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</div>
             
             ${isAtivo ? `
-              <a href="https://wa.me/5574991309816?text=Olá,%20gostaria%20de%20saber%20mais%20sobre:%20${encodeURIComponent(item.title)}" target="_blank" class="btn-whatsapp">VER MAIS / COMPRAR</a>
+              <button class="btn-add-cart" onclick="adicionarAoCarrinho(${idReal})">🛒 ADICIONAR AO CARRINHO</button>
             ` : '<span style="color:var(--text-muted); font-size:12px;">PRODUTO PAUSADO</span>'}
 
             ${modoAdmin ? `
@@ -464,13 +534,80 @@
       }).join('');
     }
 
-    // 2. Alternar entre Ativo e Desativado
+    // --- FUNÇÕES DO CARRINHO ---
+    function adicionarAoCarrinho(index) {
+      const produto = listaProdutosGlobal[index];
+      carrinho.push(produto);
+      atualizarContadorCarrinho();
+      alert(`"${produto.title}" foi adicionado ao carrinho!`);
+    }
+
+    function atualizarContadorCarrinho() {
+      document.getElementById('cart-count').innerText = carrinho.length;
+    }
+
+    function abrirCarrinho() {
+      const containerItens = document.getElementById('carrinho-itens');
+      const totalContainer = document.getElementById('carrinho-total');
+
+      if (carrinho.length === 0) {
+        containerItens.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Seu carrinho está vazio.</p>';
+        totalContainer.innerText = 'Total: R$ 0,00';
+      } else {
+        let total = 0;
+        containerItens.innerHTML = carrinho.map((item, index) => {
+          total += parseFloat(item.preco);
+          return `
+            <div class="cart-item">
+              <div class="cart-item-info">
+                <h4>${item.title}</h4>
+                <span>R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}</span>
+              </div>
+              <button class="btn-remove-item" onclick="removerDoCarrinho(${index})">&times;</button>
+            </div>
+          `;
+        }).join('');
+
+        totalContainer.innerText = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
+      }
+
+      document.getElementById('modal-carrinho').style.display = 'flex';
+    }
+
+    function removerDoCarrinho(index) {
+      carrinho.splice(index, 1);
+      atualizarContadorCarrinho();
+      abrirCarrinho(); // Re-renderiza a lista do carrinho
+    }
+
+    // MONTA E ENVIA A MENSAGEM NO WHATSAPP
+    function enviarPedidoWhatsApp() {
+      if (carrinho.length === 0) {
+        alert('Adicione produtos ao carrinho antes de finalizar!');
+        return;
+      }
+
+      let mensagem = "Olá, tudo bem?\n\nGostaria dos seguintes produtos:\n\n";
+      let total = 0;
+
+      carrinho.forEach(item => {
+        const precoFormatado = parseFloat(item.preco).toFixed(2).replace('.', ',');
+        mensagem += `• ${item.title} - R$ ${precoFormatado}\n`;
+        total += parseFloat(item.preco);
+      });
+
+      mensagem += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
+
+      const urlWhatsApp = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
+      window.open(urlWhatsApp, '_blank');
+    }
+
+    // --- FUNÇÕES ADMIN ---
     function alternarStatus(index) {
       listaProdutosGlobal[index].ativo = !(listaProdutosGlobal[index].ativo !== false);
       salvarMudancasGlobais();
     }
 
-    // 3. Excluir Produto
     function excluirProduto(index) {
       if (confirm('Tem certeza que deseja remover esta joia do catálogo?')) {
         listaProdutosGlobal.splice(index, 1);
@@ -483,7 +620,6 @@
       renderizarGrid();
     }
 
-    // 4. Recorte e Compressão da Imagem Quadrada
     function processarImagem(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -493,7 +629,7 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          const tamanho = 500; // 500x500 px
+          const tamanho = 500;
           canvas.width = tamanho;
           canvas.height = tamanho;
 
@@ -515,7 +651,7 @@
       reader.readAsDataURL(file);
     }
 
-    // 5. Clique de 3 Segundos no Título
+    // Clique 3 Segundos no Título
     const tituloHeader = document.getElementById('brand-title');
     let timerPressionar;
 
@@ -533,7 +669,6 @@
     tituloHeader.addEventListener('touchstart', iniciarContagem);
     tituloHeader.addEventListener('touchend', cancelarContagem);
 
-    // 6. Login
     function validarSenha() {
       const senhaDigitada = document.getElementById('admin-pass').value;
       if (senhaDigitada === SENHA_MESTRE) {
@@ -548,11 +683,11 @@
     }
 
     function fecharModais() {
+      document.getElementById('modal-carrinho').style.display = 'none';
       document.getElementById('modal-login').style.display = 'none';
       document.getElementById('modal-cadastro').style.display = 'none';
     }
 
-    // 7. Cadastrar Novo Produto
     function salvarProduto(event) {
       event.preventDefault();
       
@@ -577,7 +712,6 @@
       alert('Produto cadastrado com sucesso!');
       fecharModais();
 
-      // Reset dos campos
       document.getElementById('prod-nome').value = '';
       document.getElementById('prod-valor').value = '';
       document.getElementById('prod-foto-file').value = '';
@@ -586,7 +720,7 @@
       imagemProcessadaBase64 = "";
     }
 
-    // 8. Calculadora de Frete
+    // Calculadora de Frete
     async function calcularFrete() {
       const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
       const container = document.getElementById('resultado-frete');
