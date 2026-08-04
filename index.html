@@ -46,7 +46,6 @@
 
     header h1:active { opacity: 0.7; }
 
-    /* Botão Flutuante/Topo do Carrinho */
     .cart-btn-header {
       background-color: var(--gold);
       color: var(--bg-dark);
@@ -93,7 +92,6 @@
       padding: 0 20px;
     }
     
-    /* Grid de Produtos */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
@@ -161,7 +159,6 @@
       color: var(--bg-dark);
     }
 
-    /* Controles de Admin */
     .admin-controls {
       display: flex;
       gap: 5px;
@@ -184,7 +181,6 @@
     .btn-toggle { background-color: #3498db; color: white; }
     .btn-delete { background-color: var(--danger); color: white; }
 
-    /* Simulador de Frete */
     .frete-section {
       background-color: var(--card-bg);
       border: 1px solid rgba(212, 175, 55, 0.3);
@@ -243,7 +239,6 @@
       align-items: center;
     }
 
-    /* Modais Genericos */
     .modal {
       display: none;
       position: fixed;
@@ -275,7 +270,6 @@
       letter-spacing: 1px;
     }
 
-    /* Estilos do Carrinho */
     .cart-item {
       display: flex;
       justify-content: space-between;
@@ -428,9 +422,7 @@
     <div class="modal-content">
       <span class="close-modal" onclick="fecharModais()">&times;</span>
       <h3>SEU CARRINHO</h3>
-      <div id="carrinho-itens">
-        <!-- Itens do carrinho aparecem aqui -->
-      </div>
+      <div id="carrinho-itens"></div>
       <div class="cart-total" id="carrinho-total">Total: R$ 0,00</div>
       <button class="btn-whatsapp-send" onclick="enviarPedidoWhatsApp()">FINALIZAR PEDIDO VIA WHATSAPP</button>
     </div>
@@ -469,7 +461,7 @@
           <img id="img-preview" alt="Prévia">
         </div>
 
-        <button type="submit" class="btn-admin">SALVAR E ADICIONAR AO CATÁLOGO</button>
+        <button type="submit" class="btn-admin">SALVAR E PUBLICAR NA NUVEM</button>
       </form>
     </div>
   </div>
@@ -479,35 +471,83 @@
   </footer>
 
   <script>
+    // === CONFIGURAÇÕES DA API JSONBIN ===
+    const JSONBIN_BIN_ID = "6a7142b2f5f4af5e29e78d30";
+    const JSONBIN_SECRET_KEY = "$2a$10$OqN7YUEHurzEKxBD/ta2I./9ZjvaUutvOXYf9qNTIiWnLZdiW97hq";
     const SENHA_MESTRE = "1234";
-    const NUMERO_WHATSAPP = "5574991309816"; // Número do WhatsApp dela
-    
+    const NUMERO_WHATSAPP = "5574991309816";
+
+    const API_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+
     let imagemProcessadaBase64 = "";
     let modoAdmin = false;
     let listaProdutosGlobal = [];
     let carrinho = [];
 
-    // 1. Carregar Produtos
+    // 1. Carregar Produtos direto da Nuvem
     async function carregarProdutos() {
-      try {
-        const response = await fetch('data/produtos.json?v=' + new Date().getTime());
-        listaProdutosGlobal = await response.json();
-      } catch (err) {
-        listaProdutosGlobal = JSON.parse(localStorage.getItem('produtos_local') || '[]');
-      }
+      const container = document.getElementById('produtos-container');
+      container.innerHTML = '<p style="color: var(--gold); text-align: center; grid-column: 1/-1;">Carregando produtos do catálogo...</p>';
 
+      try {
+        const response = await fetch(`${API_URL}/latest`, {
+          method: 'GET',
+          headers: {
+            'X-Master-Key': JSONBIN_SECRET_KEY,
+            'X-Bin-Meta': 'false'
+          }
+        });
+
+        if (!response.ok) throw new Error('Erro ao buscar dados');
+
+        const dados = await response.json();
+        // Se for o objeto inicial de teste {"status": "ok"}, trata como lista vazia
+        listaProdutosGlobal = Array.isArray(dados) ? dados : [];
+        renderizarGrid();
+      } catch (err) {
+        console.error("Erro na nuvem, buscando backup local:", err);
+        listaProdutosGlobal = JSON.parse(localStorage.getItem('produtos_local') || '[]');
+        renderizarGrid();
+      }
+    }
+
+    // 2. Salvar Mudanças Globais na Nuvem
+    async function salvarMudancasGlobais() {
+      localStorage.setItem('produtos_local', JSON.stringify(listaProdutosGlobal));
       renderizarGrid();
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': JSONBIN_SECRET_KEY
+          },
+          body: JSON.stringify(listaProdutosGlobal)
+        });
+
+        if (!response.ok) {
+          alert('Atenção: Não foi possível salvar na nuvem.');
+        }
+      } catch (err) {
+        alert('Erro de conexão ao salvar na nuvem.');
+      }
     }
 
     // Renderizar a Grid de Produtos
     function renderizarGrid() {
       const container = document.getElementById('produtos-container');
 
+      if (!listaProdutosGlobal || listaProdutosGlobal.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">Nenhum produto cadastrado no catálogo.</p>';
+        return;
+      }
+
       const produtosParaExibir = modoAdmin 
         ? listaProdutosGlobal 
         : listaProdutosGlobal.filter(p => p.ativo !== false);
 
-      container.innerHTML = produtosParaExibir.map((item, index) => {
+      container.innerHTML = produtosParaExibir.map((item) => {
         const idReal = listaProdutosGlobal.indexOf(item);
         const isAtivo = item.ativo !== false;
 
@@ -577,10 +617,9 @@
     function removerDoCarrinho(index) {
       carrinho.splice(index, 1);
       atualizarContadorCarrinho();
-      abrirCarrinho(); // Re-renderiza a lista do carrinho
+      abrirCarrinho();
     }
 
-    // MONTA E ENVIA A MENSAGEM NO WHATSAPP
     function enviarPedidoWhatsApp() {
       if (carrinho.length === 0) {
         alert('Adicione produtos ao carrinho antes de finalizar!');
@@ -613,11 +652,6 @@
         listaProdutosGlobal.splice(index, 1);
         salvarMudancasGlobais();
       }
-    }
-
-    function salvarMudancasGlobais() {
-      localStorage.setItem('produtos_local', JSON.stringify(listaProdutosGlobal));
-      renderizarGrid();
     }
 
     function processarImagem(e) {
@@ -688,7 +722,7 @@
       document.getElementById('modal-cadastro').style.display = 'none';
     }
 
-    function salvarProduto(event) {
+    async function salvarProduto(event) {
       event.preventDefault();
       
       const nome = document.getElementById('prod-nome').value;
@@ -707,9 +741,10 @@
       };
 
       listaProdutosGlobal.unshift(novoItem);
-      salvarMudancasGlobais();
+      
+      await salvarMudancasGlobais();
 
-      alert('Produto cadastrado com sucesso!');
+      alert('Produto cadastrado e publicado na nuvem com sucesso!');
       fecharModais();
 
       document.getElementById('prod-nome').value = '';
